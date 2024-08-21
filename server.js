@@ -1,8 +1,9 @@
-const express = require('express');
-const mongoose = require('mongoose');
-const cors = require('cors');
-const userModel = require('./models/users');
-const Review = require('./models/Review');
+import express from 'express';
+import mongoose from 'mongoose';
+import cors from 'cors';
+import userModel from './models/users.js';
+import Review from './models/Review.js';
+
 import mongodbURL from './config.js';
 
 const port = process.env.PORT || 8000;
