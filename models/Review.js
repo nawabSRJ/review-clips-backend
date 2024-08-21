@@ -11,5 +11,6 @@ const reviewSchema = new mongoose.Schema({
   
   const Review = mongoose.model("Review", reviewSchema);
   
-  module.exports = Review;
+  // module.exports = Review;
+  export default Review;        // to mitigate the deployment error
   
