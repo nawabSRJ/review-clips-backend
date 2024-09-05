@@ -1,6 +1,8 @@
 import express from 'express';
 import mongoose from 'mongoose';
 import cors from 'cors';
+import jwt from 'jsonwebtoken'
+import cookieParser from 'cookie-parser';
 import userModel from './models/users.js';
 import Review from './models/Review.js';
 
@@ -26,26 +28,55 @@ mongoose.connect(`${mongodbURL}/ReviewClips`, {
   useUnifiedTopology: true,
 });
 
-app.post('/login' , (req , res) =>{
-    const {email , password} = req.body;
-                    // key : var (destructured above)
-    userModel.findOne({email:email})
-    .then(user =>{
-        if(user){
-            if(user.password === password){
-                res.status(200).json({ message: "Success", user });
-            }
-            else{
-                res.status(401).json("Incorrect Password")
-            }
-        }else{
-            res.json("No record found")
+
+const verifyUser = (req, res, next) => {
+  const token = req.cookies.token;
+  if (!token) {
+    return res.json({ message: "We need token, please provide it!" });
+  } else {
+    jwt.verify(token, "our-token-key", (err, decoded) => {
+      if (err) {
+        return res.json({ message: "Authentication Error" });
+      } else {
+        req.email = decoded.email;
+        next();
+      }
+    });
+  }
+};
+
+
+app.get('/', verifyUser, (req, res) => {
+  return res.json({ status: "Success", email: req.email });
+});
+
+
+app.post('/login', (req, res) => {
+  const { email, password } = req.body;
+  // key : var (destructured above)
+  userModel.findOne({ email: email })
+    .then(user => {
+      if (user) {
+        if (user.password === password) {
+          const token = jwt.sign({ email }, 'our-token-key', { expiresIn: '1d' });
+          res.cookie('token', token, { httpOnly: true });
+          res.status(200).json({ message: "Success", user });
         }
-        
+        else {
+          res.status(401).json("Incorrect Password")
+        }
+      } else {
+        res.json("No record found")
+      }
+
     })
     .catch(err => res.json(err));
 })
 
+app.post('/logout', (req, res) => {
+  res.clearCookie('token');
+  return res.json({ status: "Success", message: "Logged out successfully" });
+});
 
 
 app.post('/register', (req, res) => {
@@ -89,7 +120,7 @@ app.post('/review/:uniqueId', (req, res) => {
 // to fetch the user's data by their userId, including their reviews:
 app.get('/user/:userId', (req, res) => {
   const { userId } = req.params;
-  
+
   userModel.findOne({ _id: userId })
     .populate('reviews')  // Populate reviews field with review details
     .then(user => {
@@ -103,17 +134,6 @@ app.get('/user/:userId', (req, res) => {
 });
 
 
-
-
-
-
-
-
-
-// for test
-app.get('/', (req, res) => {
-  res.send('Hello World!');
-});
 
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
