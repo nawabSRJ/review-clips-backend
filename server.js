@@ -11,16 +11,18 @@ import mongodbURL from './config.js';
 const port = process.env.PORT || 8000;
 const app = express();
 app.use(express.json());
+app.use(cookieParser());
 
 
 
 // Setup CORS to allow only your frontend URL
 const corsOptions = {
   origin: 'https://reviewclips.netlify.app',  // Your frontend URL
-  optionsSuccessStatus: 200
+  optionsSuccessStatus: 200,
+  methods: ["POST", "GET"],
+  credentials: true
 };
 app.use(cors(corsOptions));
-
 
 
 mongoose.connect(`${mongodbURL}/ReviewClips`, {
