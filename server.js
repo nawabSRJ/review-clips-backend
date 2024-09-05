@@ -16,8 +16,9 @@ app.use(cookieParser());
 
 
 // Setup CORS to allow only your frontend URL
+
 const corsOptions = {
-  origin: 'https://reviewclips.netlify.app',  // Your frontend URL
+  origin: 'https://reviewclips.netlify.app',  // frontend URL
   optionsSuccessStatus: 200,
   methods: ["POST", "GET"],
   credentials: true
@@ -61,14 +62,14 @@ app.post('/login', (req, res) => {
       if (user) {
         if (user.password === password) {
           const token = jwt.sign({ email }, 'our-token-key', { expiresIn: '1d' });
-          res.cookie('token', token, { httpOnly: true });
-          res.status(200).json({ message: "Success", user });
+          res.cookie('token', token);
+          return res.status(200).json({ message: "Success", user });
         }
         else {
           res.status(401).json("Incorrect Password")
         }
       } else {
-        res.json("No record found")
+        return res.json({message : "No record found"})
       }
 
     })
